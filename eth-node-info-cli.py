@@ -25,10 +25,11 @@ def main():
     parser.add_argument("--balance", dest="account_balance", type=str)
     parser.add_argument("--txcount", dest="account_txcount", type=str)
     parser.add_argument("--storage", dest="account_storage", type=str)
+    parser.add_argument("--blockbyhash", dest="block_by_hash", type=str)
     args = parser.parse_args()
 
     
-    eth_instance = eth_rpc.EthClient(args.jrpc_host, args.jrpc_port)
+    eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
 
     if args.version:
         print "Node version:{}".format(eth_instance.node_version())
@@ -78,6 +79,11 @@ def main():
         storage = eth_instance.storage_at(acc)
         print "Storage for {} is:{}".format(acc, storage)
 
+
+    if args.block_by_hash:
+        block_hash = args.block_by_hash
+        info = eth_instance.block_info_by_hash(block_hash)
+        print "Block by hash for {} is:{}".format(block_hash, info)
 
 
 if __name__ == "__main__":
