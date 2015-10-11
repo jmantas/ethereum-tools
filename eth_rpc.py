@@ -6,33 +6,34 @@
 import json
 import requests
 
-
-class EthClient(object):
+class EthRPC(object):
     ''' eth connection initialization '''
     json_id = 0
 
-    def __init__(self, host, port):
+    def __init__(self, host=None, port=None):
         self.json_rpc_host = host
         self.json_rpc_port = port
+        self.scheme = 'http'
         self.session = requests.session()
+        
 
     def json_id_index(self):
         ''' Iterator '''
         self.json_id += 1
         return self.json_id
 
-    def init_rpc_request(self, rpc_method, json_parameters):
+    def init_rpc_request(self, rpc_method, json_parameters=None):
         ''' JSON-RPC connector '''
-        json_data = self.session.post('http://{host}:{port}/'.format
-        (host=self.json_rpc_host, port=self.json_rpc_port),
-        data=json.dumps({
+        json_data = json.dumps({
             "jsonrpc": "2.0",
             "method": rpc_method,
             "params": json_parameters,
             "id": self.json_id_index(),
             })
-        )
-        json_output = json_data.json()
+        url = '{http}://{host}:{port}/'.format(
+            http=self.scheme, host=self.json_rpc_host, port=self.json_rpc_port)
+       
+        json_output = self.session.post(url, data=json_data).json()
         if json_output and 'error' in json_output:
             raise ValueError(json_output)
         return json_output
@@ -41,73 +42,73 @@ class EthClient(object):
     def node_version(self):
         ''' get node version '''
         rpc_request_output = self.init_rpc_request(
-            "web3_clientVersion", [])
+            "web3_clientVersion")
         return rpc_request_output['result']
 
     def protocol_version(self):
         ''' get protocol version '''
         rpc_request_output = self.init_rpc_request(
-            "eth_protocolVersion", [])
+            "eth_protocolVersion")
         return rpc_request_output['result']
 
     def network_id(self):
         ''' get network ID '''
         rpc_request_output = self.init_rpc_request(
-            "net_version", [])
+            "net_version")
         return rpc_request_output['result']
 
     def network_is_listening(self):
         ''' listen status '''
         rpc_request_output = self.init_rpc_request(
-            "net_listening", [])
+            "net_listening")
         return rpc_request_output['result']
 
     def network_peer_count(self):
         ''' get peer count '''
         rpc_request_output = self.init_rpc_request(
-            "net_peerCount", [])
+            "net_peerCount")
         return int(rpc_request_output['result'], 16)
 
 #ValueError: {u'jsonrpc': u'2.0', u'id': 999, u'error': {u'message': u'eth_isSyncing method not implemented', u'code': -32601}}
-#    def blockchain_syncing(self):
-#        rpc_request_output = self.init_rpc_request("eth_isSyncing", [])
-#        return rpc_request_output['result']
+    def blockchain_syncing(self):
+        rpc_request_output = self.init_rpc_request("eth_isSyncing")
+        return rpc_request_output['result']
 
 
     def node_is_mining(self):
         ''' mining status '''
         rpc_request_output = self.init_rpc_request(
-            "eth_mining", [])
+            "eth_mining")
         return rpc_request_output['result']
 
     def coinbase(self):
         ''' get coinbase '''
         rpc_request_output = self.init_rpc_request(
-            "eth_coinbase", [])
+            "eth_coinbase")
         return rpc_request_output['result']
 
     def hashrate(self):
         ''' get hasrate '''
         rpc_request_output = self.init_rpc_request(
-            "eth_hashrate", [])
+            "eth_hashrate")
         return int(rpc_request_output['result'], 16)
 
     def gas_price(self):
         ''' get gas price '''
         rpc_request_output = self.init_rpc_request(
-            "eth_gasPrice", [])
+            "eth_gasPrice")
         return int(rpc_request_output['result'], 16)
 
     def accounts(self):
         ''' get list of accounts '''
         rpc_request_output = self.init_rpc_request(
-            "eth_accounts", [])
+            "eth_accounts")
         return rpc_request_output['result']
 
     def current_block_number(self):
         ''' get latest block number '''
         rpc_request_output = self.init_rpc_request(
-            "eth_blockNumber", [])
+            "eth_blockNumber")
         return int(rpc_request_output['result'], 16)
 
     def balance(self, account, block_number="latest"):
@@ -155,12 +156,49 @@ class EthClient(object):
         return rpc_request_output['result']
 
 
-#    def sign_data(self, address, data):
-#        rpc_request_output = self.init_rpc_request("eth_sign",
-#                                                    [address, data])
-#        return rpc_request_output['result']
+    def sign_data(self, address, data):
+        rpc_request_output = self.init_rpc_request("eth_sign",
+                                                    [address, data])
+        return rpc_request_output['result']
 
-# eth_sendTransaction
+    def send_transaction(self, from_address=None, to_address=None, gas=None, gas_price=None, value=None, data=None, nonce=None):
+#    def send_transaction(self, from_address=None, to_address=None, gas=gas, gas_price=gas_price, value=None, data=None, nonce=None):
+        '''
+    Object - The transaction object
+        from: DATA, 20 Bytes - The address the transaction is send from.
+        to: DATA, 20 Bytes - (optional when creating new contract) The address the transaction is directed to.
+        gas: QUANTITY - (optional, default: 90000) Integer of the gas provided for the transaction execution. It will return unused gas.
+        gasPrice: QUANTITY - (optional, default: To-Be-Determined) Integer of the gasPrice used for each paid gas
+        value: QUANTITY - (optional) Integer of the value send with this transaction
+        data: DATA - (optional) The compiled code of a contract
+        nonce: QUANTITY - (optional) Integer of a nonce. This allows to overwrite your own pending transactions that use the same nonce.
+
+    Returns
+
+DATA, 32 Bytes - the transaction hash, or the zero hash if the transaction is not yet available.
+
+Use eth_getTransactionReceipt to get the contract address, after the transaction was mined, when you created a contract.
+        '''
+        
+        transaction_params = {
+                'from':     from_address,
+                'to':       to_address if to_address else None,
+                'gas':      gas,
+                'gasPrice': gas_price,
+                'value':    value if value else None,
+                'data':     data if data else None
+        }
+        rpc_request_output = self.init_rpc_request(
+            "eth_sendTransaction", [transaction_params])
+        return rpc_request_output['result']
+
+
+    def transaction_receipt(self, transaction_hash):
+        rpc_request_output = self.init_rpc_request(
+            "eth_getTransactionReceipt", [transaction_hash])
+        return rpc_request_output['result']
+
+
 # eth_sendRawTransaction
 # eth_call
 # eth_estimateGas
