@@ -3,11 +3,8 @@
 
 import eth_rpc
 import argparse
-import os
 import json
-import ethereum
 from ethereum import _solidity
-from pprint import pprint
 
 def main():
 #  1000000000000000000 = 1 Ether
@@ -64,8 +61,7 @@ def main():
         print contract_instance.contract_code_from_address(args.contract_address)
 
 class Contract(object):
-    def __init__(self, rpc_host=None, rpc_port=None,
-                contract_code=None, contract_byte_code=None):
+    def __init__(self, rpc_host=None, rpc_port=None):
         self.rpc_host = rpc_host
         self.rpc_port = rpc_port
         self.tx_instance = Transaction(self.rpc_host, self.rpc_port)
@@ -96,9 +92,6 @@ class Contract(object):
         return self.eth_instance.code_from_address_hash(contract_address)
 
 
-
-
-
 class Transaction(object):
     
     def __init__(self, rpc_host=None, rpc_port=None, from_address=None, 
@@ -117,12 +110,16 @@ class Transaction(object):
         self.txhash = txhash
         self.eth_instance = eth_rpc.EthRPC(self.rpc_host, self.rpc_port)
     
-
-
     def tx_send(self, from_address=None, to_address=None, 
             gas=None, gas_price=None, value=0x0, data=None, nonce=None):
-        return self.eth_instance.send_transaction(from_address=from_address, to_address=to_address, 
-            gas=gas, gas_price=gas_price, data=data, value=value)
+        return self.eth_instance.send_transaction(
+                    from_address=from_address,
+                    to_address=to_address,
+                    gas=gas,
+                    gas_price=gas_price,
+                    data=data,
+                    value=value
+                    )
     
     def tx_receipt(self, txhash):
         return self.eth_instance.transaction_receipt(txhash)

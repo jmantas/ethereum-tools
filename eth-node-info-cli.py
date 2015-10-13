@@ -32,58 +32,58 @@ def main():
     eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
 
     if args.version:
-        print "Node version:{}".format(eth_instance.node_version())
+        print eth_instance.node_version()
 
     if args.protocol:
-        print "Protocol version:{}".format(eth_instance.protocol_version())
+        print eth_instance.protocol_version()
 
     if args.networkid:
-        print "Network ID:{}".format(eth_instance.network_id())
+        print eth_instance.network_id()
 
     if args.listening:
-        print "Nerwork listening:{}".format(eth_instance.network_is_listening())
+        print eth_instance.network_is_listening()
 
     if args.peercount:
-        print "Peer count:{}".format(eth_instance.network_peer_count())
+        print eth_instance.network_peer_count()
 
     if args.mining:
-        print "Node mining:{}".format(eth_instance.node_is_mining())
+        print eth_instance.node_is_mining()
 
     if args.coinbase:
-        print "Coinbase:{}".format(eth_instance.coinbase())
+        print eth_instance.coinbase()
 
     if args.hashrate:
-        print "Hashrate:{}".format(eth_instance.hashrate())
+        print eth_instance.hashrate()
 
     if args.gasprice:
-        print "Gasprice:{}".format(eth_instance.gas_price())
+        print eth_instance.gas_price()
 
     if args.accounts:
-        print "Accounts:{}".format(eth_instance.accounts())
+        print eth_instance.accounts()
 
     if args.blocknumber:
-        print "Last block number:{}".format(eth_instance.current_block_number())
+        print eth_instance.current_block_number()
 
     if args.account_balance:
         acc = args.account_balance
         balance = eth_instance.balance(acc)
-        print "Balance for {} is:{}".format(acc, balance)
+        print balance
 
     if args.account_txcount:
         acc = args.account_txcount
         txcount = eth_instance.transaction_count(acc)
-        print "Transaction count for {} is:{}".format(acc, txcount)
+        print txcount
 
     if args.account_storage:
         acc = args.account_storage
         storage = eth_instance.storage_at(acc)
-        print "Storage for {} is:{}".format(acc, storage)
+        print acc, storage
 
 
     if args.block_by_hash:
         block_hash = args.block_by_hash
         info = eth_instance.block_info_by_hash(block_hash)
-        print "Block by hash for {} is:{}".format(block_hash, info)
+        print info
 
 
 if __name__ == "__main__":
