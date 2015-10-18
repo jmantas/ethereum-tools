@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 # -*- mode: python; coding: utf-8 -*-
 
+'''CLI tool to compile and deploy ethereum's contracts.'''
+
 import eth_rpc
 import argparse
 import json
+import ethereum
 from ethereum import _solidity
+from ethereum.abi import ContractTranslator, encode_abi, decode_abi
+from ethereum import utils
 
 def main():
-#  1000000000000000000 = 1 Ether
+#  1000000000000000000 wei = 1 Ether
    
     
     parser = argparse.ArgumentParser(add_help=True)
@@ -29,9 +34,13 @@ def main():
                         type=str)
     parser.add_argument("--getcontractaddress", dest="contract_tx_hash",
                         type=str)
-    parser.add_argument("--getcontractcode", dest="contract_address",
+    parser.add_argument("--getcontractcode", dest="contract_address_code",
                         type=str)
-    parser.add_argument("--deploy", dest="contract_code")
+    parser.add_argument("--callcontractaddress", dest="call_contract_address",
+                        type=str)
+    parser.add_argument("--deploy", dest="deploy_contract")
+    parser.add_argument("--createcontract", dest="create_contract")
+    parser.add_argument("--abigeth", dest="abi_geth")
 
     args = parser.parse_args()
 
@@ -45,39 +54,101 @@ def main():
     if args.tx_hash:
         print json.dumps(tx_instance.tx_receipt(args.tx_hash), indent=1)
 
-    if args.contract_code:
-        with open(args.contract_code) as source_file:
-            contract_code = source_file.read()
-        contract_byte_code = contract_instance.compile_contract(contract_code)
+    if args.deploy_contract:
+        with open(args.deploy_contract) as source_file:
+            contract_source_code = source_file.read()
+        contract_byte_code = contract_instance.compile_contract_eth(contract_source_code)
         print contract_instance.deploy_contract(
             contract_byte_code,
             args.from_address, hex(args.gas),
             hex(args.gas_price))
+
+
+    if args.create_contract:
+        with open(args.create_contract) as source_file:
+            contract_source_code = source_file.read()
+        contract_instance.create_contract(contract_source_code)
+
+    if args.abi_geth:
+        with open(args.abi_geth) as source_file:
+            contract_source_code = source_file.read()
+        contract_instance.get_abi_for_geth_console(contract_source_code)
         
+    
     if args.contract_tx_hash:
         print tx_instance.tx_receipt(args.contract_tx_hash)['contractAddress']
     
-    if args.contract_address:
-        print contract_instance.contract_code_from_address(args.contract_address)
+    if args.contract_address_code:
+        print contract_instance.contract_code_from_address(args.contract_address_code)
+
+    if args.call_contract_address:
+        eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
+        contract_hex_code = contract_instance.contract_code_from_address(args.call_contract_address)
+        print contract_instance.call_contract(
+            args.call_contract_address,
+            contract_hex_code)
+        
+
 
 class Contract(object):
+    ''' contract object '''
     def __init__(self, rpc_host=None, rpc_port=None):
         self.rpc_host = rpc_host
         self.rpc_port = rpc_port
+        
         self.tx_instance = Transaction(self.rpc_host, self.rpc_port)
         self.eth_instance = eth_rpc.EthRPC(self.rpc_host, self.rpc_port)
+        
+        self.contract_byte_code = None
+        self.contract_hex_code = None
+        self.contract_rich_code = None
+        self.signature = None
+        self.translation = None
+        self.abi = None
+
+    def create_contract(self, contract_source_code):
+
+        self.signature = self.mk_signature(contract_source_code)
+        self.translation = ContractTranslator(self.signature)
+        self.contract_byte_code = self.compile_contract_eth(contract_source_code)
+        self.contract_hex_code = self.contract_byte_code.encode('hex') 
+        self.contract_rich_code = self.compile_contract_rich(contract_source_code)
+        self.contract_code_from_solitidy_rpc = self.compile_contract_solidity(contract_source_code)
+        self.abi = str(self.signature).replace(" ","").replace("True","true").replace("False","false")
+        #self.get_abi_for_geth_console()
+
+    def get_abi_for_geth_console(self, contract_source_code):
+        self.create_contract(contract_source_code)
+        print 'var kontrakt = eth.contract({}).at(\'contractaddresshere\');'.format(self.abi)
+
 
     def split_contract(self, contract_code):
         return _solidity.solc_wrapper.split_contracts(contract_code)
     
-    def compile_contract(self, contract_code):
+    def compile_contract_bin(self, contract_code):
+        '''compile with solc binary'''
+        pass
+
+    def compile_contract_solidity(self, contract_code):
+        '''compile with RPC call'''
+        return self.eth_instance.compile_solidity(contract_code)
+
+    def compile_contract_eth(self, contract_code):
+        ''' compile with ethereum's module solc_wrapper'''
         return _solidity.solc_wrapper.compile(contract_code)
 
     def compile_contract_rich(self, contract_code):
+        ''' compile with ethereum's module solc_wrapper
+            get rich output  '''
         return _solidity.solc_wrapper.compile_rich(contract_code)
 
+    def call_contract(self, to_address=None, contract_code=None, default_block="pending"):
+        ''' call contract's function_name in to_address '''
+        return self.eth_instance.eth_call(to_address, contract_code)
+        
     def deploy_contract(self, contract_byte_code, from_address, gas, gas_price,
                         value=0x0):
+        ''' deploy contract by sending compiled byte code '''
         return self.tx_instance.tx_send(
             from_address=from_address,
             gas=gas,
@@ -86,14 +157,16 @@ class Contract(object):
             )
 
     def mk_signature(self, contract_code):
+        ''' gets ABI with ethereum's module solc_wrapper '''
         return _solidity.solc_wrapper.mk_full_signature(contract_code)
 
     def contract_code_from_address(self, contract_address):
+        ''' gets contract code from address '''
         return self.eth_instance.code_from_address_hash(contract_address)
 
 
 class Transaction(object):
-    
+    ''' transaction object ''' 
     def __init__(self, rpc_host=None, rpc_port=None, from_address=None, 
                 to_address=None, gas=None, gas_price=None, value=0x0, 
                 data=None, nonce=None, txhash=None):

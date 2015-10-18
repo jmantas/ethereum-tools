@@ -31,7 +31,10 @@ class EthRPC(object):
             "id": self.json_id_index(),
             })
         url = '{http}://{host}:{port}/'.format(
-            http=self.scheme, host=self.json_rpc_host, port=self.json_rpc_port)
+            http=self.scheme,
+            host=self.json_rpc_host,
+            port=self.json_rpc_port
+            )
        
         json_output = self.session.post(url, data=json_data).json()
         if json_output and 'error' in json_output:
@@ -162,23 +165,6 @@ class EthRPC(object):
         return rpc_request_output['result']
 
     def send_transaction(self, from_address=None, to_address=None, gas=None, gas_price=None, value=None, data=None, nonce=None):
-#    def send_transaction(self, from_address=None, to_address=None, gas=gas, gas_price=gas_price, value=None, data=None, nonce=None):
-        '''
-    Object - The transaction object
-        from: DATA, 20 Bytes - The address the transaction is send from.
-        to: DATA, 20 Bytes - (optional when creating new contract) The address the transaction is directed to.
-        gas: QUANTITY - (optional, default: 90000) Integer of the gas provided for the transaction execution. It will return unused gas.
-        gasPrice: QUANTITY - (optional, default: To-Be-Determined) Integer of the gasPrice used for each paid gas
-        value: QUANTITY - (optional) Integer of the value send with this transaction
-        data: DATA - (optional) The compiled code of a contract
-        nonce: QUANTITY - (optional) Integer of a nonce. This allows to overwrite your own pending transactions that use the same nonce.
-
-    Returns
-
-DATA, 32 Bytes - the transaction hash, or the zero hash if the transaction is not yet available.
-
-Use eth_getTransactionReceipt to get the contract address, after the transaction was mined, when you created a contract.
-        '''
         
         transaction_params = {
                 'from':     from_address,
@@ -199,10 +185,27 @@ Use eth_getTransactionReceipt to get the contract address, after the transaction
         return rpc_request_output['result']
 
 
+    def eth_call(self, from_address=None, to_address=None, gas=None, gas_price=None, value=None, data=None):
+        transaction_params = {
+                'from':     from_address,
+                'to':       to_address if to_address else None,
+                'gas':      gas,
+                'gasPrice': gas_price,
+                'value':    value if value else None,
+                'data':     data if data else None
+        }
+
+        rpc_request_output = self.init_rpc_request(
+            "eth_call", [transaction_params])
+        return rpc_request_output['result']
+
 # eth_sendRawTransaction
-# eth_call
 # eth_estimateGas
 
+    def compile_solidity(self, contract_source_code):
+        rpc_request_output = self.init_rpc_request(
+            "eth_compileSolidity", [contract_source_code])
+        return rpc_request_output['result']
 
     def block_info_by_hash(self, block_hash, full_bool=True):
         rpc_request_output = self.init_rpc_request(
