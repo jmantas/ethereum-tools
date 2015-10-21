@@ -115,7 +115,7 @@ class Contract(object):
         self.contract_combined_code = None
         self.signature = None
         self.translation = None
-        self.abi = None
+        self.abi_geth = None
 
     def create_contract(self, contract_source_code):
         ''' Method for creating contract '''
@@ -125,7 +125,7 @@ class Contract(object):
         self.contract_hex_code = self.contract_byte_code.encode('hex')
         self.contract_rich_code = self.compile_contract_rich(contract_source_code)
         self.contract_code_from_solitidy_rpc = self.compile_contract_solidity(contract_source_code)
-        self.contract_combined = self.compile_combined(contract_source_code)
+        self.contract_combined = self.compile_contract_combined(contract_source_code)
         
         self.abi_geth = str(self.signature).replace(" ", "").replace("True", "true").replace("False", "false")
         #self.get_abi_for_geth_console()
