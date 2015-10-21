@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- mode: python; coding: utf-8 -*-
 
-''' eth rpc module''' 
+''' eth rpc module'''
 
 import json
 import requests
@@ -15,7 +15,6 @@ class EthRPC(object):
         self.json_rpc_port = port
         self.scheme = 'http'
         self.session = requests.session()
-        
 
     def json_id_index(self):
         ''' Iterator '''
@@ -35,7 +34,6 @@ class EthRPC(object):
             host=self.json_rpc_host,
             port=self.json_rpc_port
             )
-       
         json_output = self.session.post(url, data=json_data).json()
         if json_output and 'error' in json_output:
             raise ValueError(json_output)
@@ -72,8 +70,8 @@ class EthRPC(object):
             "net_peerCount")
         return int(rpc_request_output['result'], 16)
 
-#ValueError: {u'jsonrpc': u'2.0', u'id': 999, u'error': {u'message': u'eth_isSyncing method not implemented', u'code': -32601}}
     def blockchain_syncing(self):
+        ''' gets blockchains sync status '''
         rpc_request_output = self.init_rpc_request("eth_isSyncing")
         return rpc_request_output['result']
 
@@ -115,7 +113,8 @@ class EthRPC(object):
         return int(rpc_request_output['result'], 16)
 
     def balance(self, account, block_number="latest"):
-        ''' get balance for account hash, by default at latest synced block number '''
+        ''' get balance for account hash,
+            by default at latest synced block number '''
         rpc_request_output = self.init_rpc_request(
             "eth_getBalance", [account, block_number])
         return int(rpc_request_output['result'], 16)
@@ -127,6 +126,7 @@ class EthRPC(object):
         return int(rpc_request_output['result'], 16)
 
     def storage_at(self, account, position="0x0", block_number="latest"):
+        ''' returns storage at account latest block in position 0x0 '''
         rpc_request_output = self.init_rpc_request(
             "eth_getStorageAt", [account, position, block_number])
         return rpc_request_output['result']
@@ -164,8 +164,9 @@ class EthRPC(object):
                                                     [address, data])
         return rpc_request_output['result']
 
-    def send_transaction(self, from_address=None, to_address=None, gas=None, gas_price=None, value=None, data=None, nonce=None):
-        
+    def send_transaction(self, from_address=None, to_address=None, gas=None,
+                        gas_price=None, value=None, data=None, nonce=None):
+        ''' send transaction '''
         transaction_params = {
                 'from':     from_address,
                 'to':       to_address if to_address else None,
@@ -186,6 +187,7 @@ class EthRPC(object):
 
 
     def eth_call(self, from_address=None, to_address=None, gas=None, gas_price=None, value=None, data=None):
+        ''' calls contract '''
         transaction_params = {
                 'from':     from_address,
                 'to':       to_address if to_address else None,
@@ -200,7 +202,26 @@ class EthRPC(object):
         return rpc_request_output['result']
 
 # eth_sendRawTransaction
-# eth_estimateGas
+
+
+    def eth_estimate_gas(self, from_address=None, to_address=None,
+                        gas=None, gas_price=None, value=None, data=None):
+        ''' estimates gas per transaction by creating dummy tx which does
+            not get into blockchain '''
+        transaction_params = {
+                'from':     from_address if from_address else None,
+                'to':       to_address if to_address else None,
+                'gas':      gas if gas else None,
+                'gasPrice': gas_price if gas_price else None,
+                'value':    value if value else None,
+                'data':     data if data else None
+        }
+
+        rpc_request_output = self.init_rpc_request(
+            "eth_estimateGas", [transaction_params])
+        return rpc_request_output['result']
+
+
 
     def compile_solidity(self, contract_source_code):
         rpc_request_output = self.init_rpc_request(
