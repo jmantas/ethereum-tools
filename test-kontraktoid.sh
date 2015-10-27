@@ -13,12 +13,13 @@ echo ${TXHASH}
 echo "Getting contract ABI..."
 ABI=`./kontraktoid.py --host 127.0.0.1 --port 18801 --abigeth $1`
 
-
+# get status of mining, if truewait for ~60 sec for block to mine
 MINING_BOOL=`./eth-node-info-cli.py --host 127.0.0.1 --port 18801 --mining`
-echo ${MINING_BOOL}
-if [ '${MINING_BOOL}' = 'False' ] 
-    then
-        echo "waiting for ~60 sec, for block to be mined. Probably ... for sure..."
+
+if test "${MINING_BOOL}" = "True"
+#if [ "{$MINING_BOOL}" == "True" ] 
+then
+        echo "waiting for ~60 sec, for block to be mined. Probably ... for sure ..."
         sleep 60
     else
         echo "Not mining"

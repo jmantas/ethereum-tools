@@ -26,6 +26,7 @@ def main():
     parser.add_argument("--txcount", dest="account_txcount", type=str)
     parser.add_argument("--storage", dest="account_storage", type=str)
     parser.add_argument("--blockbyhash", dest="block_by_hash", type=str)
+    parser.add_argument("--latestblockinfo", action="store_true")
     args = parser.parse_args()
 
     
@@ -85,6 +86,10 @@ def main():
         info = eth_instance.block_info_by_hash(block_hash)
         print info
 
+    if args.latestblockinfo:
+        block_number = "latest"
+        info = eth_instance.block_info_by_number(block_number)
+        print info
 
 if __name__ == "__main__":
     main()

@@ -19,3 +19,4 @@ echo ${COINBASE}
 ./eth-node-info-cli.py --host 127.0.0.1 --port 18801 --storage ${COINBASE}
 ./eth-node-info-cli.py --host 127.0.0.1 --port 18801 --blockbyhash 0xeb088bd9560c608aacab338ec24b59623696049ba2baf6d689249bfd9cd06303 
 
+./eth-node-info-cli.py --host 127.0.0.1 --port 18801 --latestblockinfo

@@ -8,8 +8,10 @@ import argparse
 import json
 import ethereum
 from ethereum import _solidity
-from ethereum.abi import ContractTranslator, encode_abi, decode_abi
-from ethereum import utils
+#from ethereum.abi import ContractTranslator, encode_abi, decode_abi
+#from ethereum import utils
+
+CONTRACT_BYTE_CODE = None
 
 def main():
     ''' Main function '''
@@ -40,7 +42,6 @@ def main():
     parser.add_argument("--callcontractaddress", dest="call_contract_address",
                         type=str)
     parser.add_argument("--deploy", dest="deploy_contract")
-    parser.add_argument("--createcontract", dest="create_contract")
     parser.add_argument("--abigeth", dest="abi_geth")
     parser.add_argument("--compilecombined", dest="compile_combined")
 
@@ -59,9 +60,10 @@ def main():
     if args.deploy_contract:
         with open(args.deploy_contract) as source_file:
             contract_source_code = source_file.read()
-        contract_byte_code = contract_instance.compile_contract_eth(contract_source_code)
+        global CONTRACT_BYTE_CODE
+        CONTRACT_BYTE_CODE = contract_instance.compile_contract_eth(contract_source_code)
         print contract_instance.deploy_contract(
-            contract_byte_code,
+            CONTRACT_BYTE_CODE,
             args.from_address, hex(args.gas),
             hex(args.gas_price))
 
@@ -71,14 +73,8 @@ def main():
             contract_source_code = source_file.read()
         contract_byte_code = contract_instance.compile_contract_combined(contract_source_code)
         print contract_byte_code
-
 #for testing 
         
-
-    if args.create_contract:
-        with open(args.create_contract) as source_file:
-            contract_source_code = source_file.read()
-        contract_instance.create_contract(contract_source_code)
 
     if args.abi_geth:
         with open(args.abi_geth) as source_file:
@@ -117,22 +113,24 @@ class Contract(object):
         self.translation = None
         self.abi_geth = None
 
-    def create_contract(self, contract_source_code):
-        ''' Method for creating contract '''
+    def translate_contract(self, contract_source_code):
+        ''' Method for ContractTranslator '''
+        
+        ''' mk_signature creates ABI from contracts source code '''
         self.signature = self.mk_signature(contract_source_code)
         self.translation = ContractTranslator(self.signature)
-        self.contract_byte_code = self.compile_contract_eth(contract_source_code)
-        self.contract_hex_code = self.contract_byte_code.encode('hex')
-        self.contract_rich_code = self.compile_contract_rich(contract_source_code)
-        self.contract_code_from_solitidy_rpc = self.compile_contract_solidity(contract_source_code)
-        self.contract_combined = self.compile_contract_combined(contract_source_code)
         
-        self.abi_geth = str(self.signature).replace(" ", "").replace("True", "true").replace("False", "false")
-        #self.get_abi_for_geth_console()
+        return self.translation 
 
     def get_abi_for_geth_console(self, contract_source_code):
         ''' gets ABI of mined contract for later use on geth console '''
-        self.create_contract(contract_source_code)
+        
+        #self.create_contract(contract_source_code)
+        
+        ''' mk_signature creates ABI from contracts source code '''
+        self.signature = self.mk_signature(contract_source_code)
+        ''' replacing some stuff which geth does not like '''
+        self.abi_geth = str(self.signature).replace(" ", "").replace("True", "true").replace("False", "false")
         print 'var kontrakt = eth.contract({}).at(\'contractaddresshere\');'.format(self.abi_geth)
 
 
@@ -166,7 +164,7 @@ class Contract(object):
         return _solidity.solc_wrapper.compile_rich(contract_code)
 
     def call_contract(self, to_address=None, contract_code=None, default_block="pending"):
-        ''' call contract's function_name in to_address '''
+        ''' call contract's function_name in to_address. Not tested. '''
         return self.eth_instance.eth_call(to_address, contract_code)
 
     def deploy_contract(self, contract_byte_code, from_address, gas, gas_price,

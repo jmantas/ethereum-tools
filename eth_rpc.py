@@ -244,5 +244,4 @@ class EthRPC(object):
             "eth_getTransactionByHash", [transaction_hash])
         return rpc_request_output['result']
 
-#eth_getTransactionByBlockHashAndIndex
 
