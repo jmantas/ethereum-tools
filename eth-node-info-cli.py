@@ -4,10 +4,14 @@
 ''' CLI tool to get basic info from ethereum via JSON-RPC '''
 
 import eth_rpc
+import eth_util
 import argparse
+import json
+import yaml
 
 def main():
     ''' Main function '''
+
     parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument("--host", dest="jrpc_host")
     parser.add_argument("--port", dest="jrpc_port")
@@ -27,11 +31,12 @@ def main():
     parser.add_argument("--storage", dest="account_storage", type=str)
     parser.add_argument("--blockbyhash", dest="block_by_hash", type=str)
     parser.add_argument("--latestblockinfo", action="store_true")
+    parser.add_argument("--code", dest="code_from_address", type=str)
     args = parser.parse_args()
 
     
     eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
-
+     
     if args.version:
         print eth_instance.node_version()
 
@@ -60,7 +65,8 @@ def main():
         print eth_instance.gas_price()
 
     if args.accounts:
-        print eth_instance.accounts()
+        accounts_json = eth_instance.accounts()
+        print eth_util.json_to_yamler(accounts_json)
 
     if args.blocknumber:
         print eth_instance.current_block_number()
@@ -80,7 +86,6 @@ def main():
         storage = eth_instance.storage_at(acc)
         print acc, storage
 
-
     if args.block_by_hash:
         block_hash = args.block_by_hash
         info = eth_instance.block_info_by_hash(block_hash)
@@ -88,7 +93,12 @@ def main():
 
     if args.latestblockinfo:
         block_number = "latest"
-        info = eth_instance.block_info_by_number(block_number)
+        latestblockinfo_json = eth_instance.block_info_by_number(block_number)
+        print eth_util.json_to_yamler(latestblockinfo_json)
+    
+    if args.code_from_address:
+        address = args.code_from_address
+        info = eth_instance.code_from_address_hash(address)
         print info
 
 if __name__ == "__main__":
