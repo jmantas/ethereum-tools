@@ -6,7 +6,7 @@
 import eth_rpc
 import argparse
 import json
-import ethereum
+#import ethereum
 from ethereum import _solidity
 #from ethereum.abi import ContractTranslator, encode_abi, decode_abi
 #from ethereum import utils
@@ -15,35 +15,39 @@ CONTRACT_BYTE_CODE = None
 
 def main():
     ''' Main function '''
-#  1000000000000000000 wei = 1 Ether
-
-
     parser = argparse.ArgumentParser(add_help=True)
-    parser.add_argument("--host", dest="jrpc_host")
-    parser.add_argument("--port", dest="jrpc_port")
-    parser.add_argument("--from", dest="from_address",
+    parser.add_argument("--host", dest="jrpc_host", help="Ethereum host")
+    parser.add_argument("--port", dest="jrpc_port", help="Ethereum port")
+    parser.add_argument("--from", dest="from_address", help="From address",
                         type=str)
-    parser.add_argument("--to", dest="to_address",
+    parser.add_argument("--to", dest="to_address", help="To address",
                         type=str)
-    parser.add_argument("--value", dest="value",
+    parser.add_argument("--value", dest="value", help="Amount of wei",
                         type=int,
                         default="0")
-    parser.add_argument("--gas", dest="gas",
+    parser.add_argument("--gas", dest="gas", help="Amount of gas",
                         type=int, default="90000")
-    parser.add_argument("--gasprice", dest="gas_price",
+    parser.add_argument("--gasprice", dest="gas_price", help="Price of gas",
                         type=int,
                         default="50000000000")
     parser.add_argument("--gettxreceipt", dest="tx_hash",
+                        help="Gets tx receipt from txhash",
                         type=str)
     parser.add_argument("--getcontractaddress", dest="contract_tx_hash",
+                        help="Gets contract address from txhash", 
                         type=str)
-    parser.add_argument("--getcontractcode", dest="contract_address_code",
+    parser.add_argument("--getcontractcode", dest="get_contract_address",
+                        help="Gets contract code from contract address",
                         type=str)
     parser.add_argument("--callcontractaddress", dest="call_contract_address",
+                        help="Calls contract at address",
                         type=str)
-    parser.add_argument("--deploy", dest="deploy_contract")
-    parser.add_argument("--abigeth", dest="abi_geth")
-    parser.add_argument("--compilecombined", dest="compile_combined")
+    parser.add_argument("--deploy", dest="deploy_contract",
+                        help="Deploys .sol contract")
+    parser.add_argument("--abigeth", dest="source_file_sol",
+                        help="Gets ABI to be used in geth console")
+    parser.add_argument("--compilecombined", dest="compile_combined",
+                        help="Compiles with solc wrapper without deploying")
 
     args = parser.parse_args()
 
@@ -67,17 +71,15 @@ def main():
             args.from_address, hex(args.gas),
             hex(args.gas_price))
 
-#for testing 
     if args.compile_combined:
         with open(args.compile_combined) as source_file:
             contract_source_code = source_file.read()
         contract_byte_code = contract_instance.compile_contract_combined(contract_source_code)
         print contract_byte_code
-#for testing 
         
 
-    if args.abi_geth:
-        with open(args.abi_geth) as source_file:
+    if args.source_file_sol:
+        with open(args.source_file_sol) as source_file:
             contract_source_code = source_file.read()
         contract_instance.get_abi_for_geth_console(contract_source_code)
 
@@ -85,8 +87,8 @@ def main():
     if args.contract_tx_hash:
         print tx_instance.tx_receipt(args.contract_tx_hash)['contractAddress']
 
-    if args.contract_address_code:
-        print contract_instance.contract_code_from_address(args.contract_address_code)
+    if args.get_contract_address:
+        print contract_instance.contract_code_from_address(args.get_contract_address)
 
     if args.call_contract_address:
         eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
@@ -136,10 +138,6 @@ class Contract(object):
 
     def split_contract(self, contract_code):
         return _solidity.solc_wrapper.split_contracts(contract_code)
-
-    def compile_contract_bin(self, contract_code):
-        '''compile with solc binary'''
-        pass
 
     def compile_contract_solidity(self, contract_code):
         '''compile with RPC call'''
