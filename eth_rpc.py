@@ -39,7 +39,6 @@ class EthRPC(object):
             raise ValueError(json_output)
         return json_output
 
-
     def node_version(self):
         ''' get node version '''
         rpc_request_output = self.init_rpc_request(
@@ -74,7 +73,6 @@ class EthRPC(object):
         ''' gets blockchains sync status '''
         rpc_request_output = self.init_rpc_request("eth_isSyncing")
         return rpc_request_output['result']
-
 
     def node_is_mining(self):
         ''' mining status '''
@@ -131,37 +129,33 @@ class EthRPC(object):
             "eth_getStorageAt", [account, position, block_number])
         return rpc_request_output['result']
 
-
-
-
-
-
-
     def transaction_count_in_block(self, block_hash):
+        ''' returns transcation count in a block(hash) '''
         rpc_request_output = self.init_rpc_request(
             "eth_getBlockTransactionCountByHash", [block_hash])
         return int(rpc_request_output['result'], 16)
 
     def uncle_count_from_block_hash(self, block_hash):
+        ''' uncle count from a block(hash) '''
         rpc_request_output = self.init_rpc_request(
             "eth_getUncleCountByBlockHash", [block_hash])
         return int(rpc_request_output['result'], 16)
 
     def uncle_count_from_block_number(self, block_number):
+        ''' uncle count from a block(number) '''
         rpc_request_output = self.init_rpc_request(
             "eth_getUncleCountByBlockNumber", [block_number])
-
         return int(rpc_request_output['result'], 16)
 
     def code_from_address_hash(self, address, block_number="latest"):
+        ''' returns contract code from address '''
         rpc_request_output = self.init_rpc_request(
             "eth_getCode", [address, block_number])
         return rpc_request_output['result']
 
-
     def sign_data(self, address, data):
-        rpc_request_output = self.init_rpc_request("eth_sign",
-                                                    [address, data])
+        ''' sign data '''
+        rpc_request_output = self.init_rpc_request("eth_sign", [address, data])
         return rpc_request_output['result']
 
     def send_transaction(self, from_address=None, to_address=None, gas=None,
@@ -179,12 +173,11 @@ class EthRPC(object):
             "eth_sendTransaction", [transaction_params])
         return rpc_request_output['result']
 
-
     def transaction_receipt(self, transaction_hash):
+        ''' returns transaction receipt '''
         rpc_request_output = self.init_rpc_request(
             "eth_getTransactionReceipt", [transaction_hash])
         return rpc_request_output['result']
-
 
     def eth_call(self, from_address=None, to_address=None, gas=None, gas_price=None, value=None, data=None):
         ''' calls contract '''
@@ -196,13 +189,9 @@ class EthRPC(object):
                 'value':    value if value else None,
                 'data':     data if data else None
         }
-
         rpc_request_output = self.init_rpc_request(
             "eth_call", [transaction_params])
         return rpc_request_output['result']
-
-# eth_sendRawTransaction
-
 
     def eth_estimate_gas(self, from_address=None, to_address=None,
                         gas=None, gas_price=None, value=None, data=None):
@@ -221,9 +210,8 @@ class EthRPC(object):
             "eth_estimateGas", [transaction_params])
         return rpc_request_output['result']
 
-
-
     def compile_solidity(self, contract_source_code):
+        ''' compiles with solidity by RPC request '''
         rpc_request_output = self.init_rpc_request(
             "eth_compileSolidity", [contract_source_code])
         return rpc_request_output['result']
@@ -237,7 +225,6 @@ class EthRPC(object):
         rpc_request_output = self.init_rpc_request(
             "eth_getBlockByNumber", [block_number, full_bool])
         return rpc_request_output['result']
-
 
     def transaction_info_by_hash(self, transaction_hash):
         rpc_request_output = self.init_rpc_request(
