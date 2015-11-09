@@ -6,10 +6,7 @@
 import eth_rpc
 import argparse
 import json
-#import ethereum
 from ethereum import _solidity
-#from ethereum.abi import ContractTranslator, encode_abi, decode_abi
-#from ethereum import utils
 
 CONTRACT_BYTE_CODE = None
 
@@ -91,7 +88,7 @@ def main():
         print contract_instance.contract_code_from_address(args.get_contract_address)
 
     if args.call_contract_address:
-        eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
+#        eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
         contract_hex_code = contract_instance.contract_code_from_address(args.call_contract_address)
         print contract_instance.call_contract(
             args.call_contract_address,
@@ -112,32 +109,15 @@ class Contract(object):
         self.contract_code_from_solitidy_rpc = None
         self.contract_combined_code = None
         self.signature = None
-        self.translation = None
         self.abi_geth = None
-
-    def translate_contract(self, contract_source_code):
-        ''' Method for ContractTranslator '''
-        
-        ''' mk_signature creates ABI from contracts source code '''
-        self.signature = self.mk_signature(contract_source_code)
-        self.translation = ContractTranslator(self.signature)
-        
-        return self.translation 
 
     def get_abi_for_geth_console(self, contract_source_code):
         ''' gets ABI of mined contract for later use on geth console '''
-        
-        #self.create_contract(contract_source_code)
-        
-        ''' mk_signature creates ABI from contracts source code '''
+        # mk_signature creates ABI from contracts source code
         self.signature = self.mk_signature(contract_source_code)
-        ''' replacing some stuff which geth does not like '''
+        # replacing some stuff which geth does not like
         self.abi_geth = str(self.signature).replace(" ", "").replace("True", "true").replace("False", "false")
         print 'var kontrakt = eth.contract({}).at(\'contractaddresshere\');'.format(self.abi_geth)
-
-
-    def split_contract(self, contract_code):
-        return _solidity.solc_wrapper.split_contracts(contract_code)
 
     def compile_contract_solidity(self, contract_code):
         '''compile with RPC call'''
@@ -162,8 +142,8 @@ class Contract(object):
         return _solidity.solc_wrapper.compile_rich(contract_code)
 
     def call_contract(self, to_address=None, contract_code=None, default_block="pending"):
-        ''' call contract's function_name in to_address. Not tested. '''
-        return self.eth_instance.eth_call(to_address, contract_code)
+        ''' call contract's function_name in to_address. Not working? '''
+        return self.eth_instance.eth_call(to_address, contract_code, default_block)
 
     def deploy_contract(self, contract_byte_code, from_address, gas, gas_price,
                         value=0x0):
@@ -178,7 +158,7 @@ class Contract(object):
     def mk_signature(self, contract_code):
         ''' gets ABI with ethereum's module solc_wrapper '''
         return _solidity.solc_wrapper.mk_full_signature(contract_code)
-
+    
     def contract_code_from_address(self, contract_address):
         ''' gets contract code from address '''
         return self.eth_instance.code_from_address_hash(contract_address)
