@@ -6,12 +6,9 @@
 import eth_rpc
 import eth_util
 import argparse
-import json
-import yaml
 
 def main():
     ''' Main function '''
-
     parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument("--host", dest="jrpc_host")
     parser.add_argument("--port", dest="jrpc_port")
@@ -33,8 +30,7 @@ def main():
     parser.add_argument("--getlatestblockinfo", action="store_true")
     parser.add_argument("--getcode", dest="getcode_from_address", type=str)
     args = parser.parse_args()
-
-    
+     
     eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
      
     if args.getversion:
