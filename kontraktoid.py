@@ -3,7 +3,7 @@
 
 '''CLI tool to compile and deploy ethereum's contracts.'''
 
-import eth_rpc
+from ethtoollib.eth_rpc import *
 import argparse
 import json
 from ethereum import _solidity
@@ -88,7 +88,7 @@ def main():
         print contract_instance.contract_code_from_address(args.get_contract_address)
 
     if args.call_contract_address:
-#        eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
+#        eth_instance = EthRPC(args.jrpc_host, args.jrpc_port)
         contract_hex_code = contract_instance.contract_code_from_address(args.call_contract_address)
         print contract_instance.call_contract(
             args.call_contract_address,
@@ -102,7 +102,7 @@ class Contract(object):
         self.rpc_host = rpc_host
         self.rpc_port = rpc_port
         self.tx_instance = Transaction(self.rpc_host, self.rpc_port)
-        self.eth_instance = eth_rpc.EthRPC(self.rpc_host, self.rpc_port)
+        self.eth_instance = EthRPC(self.rpc_host, self.rpc_port)
         self.contract_byte_code = None
         self.contract_hex_code = None
         self.contract_rich_code = None
@@ -180,7 +180,7 @@ class Transaction(object):
         self.data = data
         self.nonce = nonce
         self.txhash = txhash
-        self.eth_instance = eth_rpc.EthRPC(self.rpc_host, self.rpc_port)
+        self.eth_instance = EthRPC(self.rpc_host, self.rpc_port)
 
     def tx_send(self, from_address=None, to_address=None,
             gas=None, gas_price=None, value=0x0, data=None, nonce=None):

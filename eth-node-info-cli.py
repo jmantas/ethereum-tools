@@ -3,8 +3,8 @@
 
 ''' CLI tool to get basic info from ethereum via JSON-RPC '''
 
-import eth_rpc
-import eth_util
+from ethtoollib.eth_rpc import *
+from ethtoollib.eth_util import *
 import argparse
 
 def main():
@@ -31,7 +31,7 @@ def main():
     parser.add_argument("--getcode", dest="getcode_from_address", type=str)
     args = parser.parse_args()
      
-    eth_instance = eth_rpc.EthRPC(args.jrpc_host, args.jrpc_port)
+    eth_instance = EthRPC(args.jrpc_host, args.jrpc_port)
      
     if args.getversion:
         print eth_instance.node_version()
@@ -62,7 +62,7 @@ def main():
 
     if args.getaccounts:
         accounts_json = eth_instance.accounts()
-        print eth_util.json_to_yamler(accounts_json)
+        print json_to_yamler(accounts_json)
 
     if args.getblocknumber:
         print eth_instance.current_block_number()
@@ -90,7 +90,7 @@ def main():
     if args.getlatestblockinfo:
         block_number = "latest"
         latestblockinfo_json = eth_instance.block_info_by_number(block_number)
-        print eth_util.json_to_yamler(latestblockinfo_json)
+        print json_to_yamler(latestblockinfo_json)
     
     if args.getcode_from_address:
         address = args.getcode_from_address
