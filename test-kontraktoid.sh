@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Little Tester script
+# Little Tester-deployer script
 
 #contract deployment
 echo "Deploying contract..."
