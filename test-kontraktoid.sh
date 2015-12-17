@@ -8,12 +8,12 @@ TXHASH=`./kontraktoid.py --host 127.0.0.1 --port 18801 --gas 3000000 --from "0x6
 echo "Trasaction hash of the deployed contract:"
 echo ${TXHASH}
 
-# get contract call ABI and address formated for copypasting intho geth console
+# get contract call ABI and address formated for copypasting into geth console
 # for testing simple solidity contracts
 echo "Getting contract ABI..."
 ABI=`./kontraktoid.py --host 127.0.0.1 --port 18801 --abigeth $1`
 
-# get status of mining, if truewait for ~60 sec for block to mine
+# get status of mining, if true wait for ~60 sec for block to mine
 MINING_BOOL=`./eth-node-info-cli.py --host 127.0.0.1 --port 18801 --ismining`
 
 #if [ "{$MINING_BOOL}" == "True" ] 
